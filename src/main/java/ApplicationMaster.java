@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.Collections;
 
 import org.apache.hadoop.conf.Configuration;
@@ -14,11 +15,12 @@ import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
 import org.apache.hadoop.yarn.client.api.NMClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Records;
 
 
 public class ApplicationMaster {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, YarnException, InterruptedException {
         // Read Yarn configuration and input arguments
         System.out.println("Running ApplicationMaster...");
         final String shellCommand = args[0];
