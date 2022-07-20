@@ -84,9 +84,8 @@ public class Client {
 
         //The command to start ApplicationMaster service
         System.out.println("Setting command to start ApplicationMaster service");
-        //change ApplicationMaster path to correct package
-        //$JAVA_HOME
-        amContainer.setCommands(Collections.singletonList("/usr/lib/jvm/jdk1.8.0/bin/java "
+        //String JAVA_HOME = "usr/lib/jvm/java-8-openjdk-amd64/";
+        amContainer.setCommands(Collections.singletonList("$JAVA_HOME/bin/java"
                 + " -Xmx256M" + " com.packt.firstyarnapp.ApplicationMaster"
                 + " " + command + " " + String.valueOf(n) + " 1>"
                 + ApplicationConstants.LOG_DIR_EXPANSION_VAR +
