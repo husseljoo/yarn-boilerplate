@@ -86,14 +86,14 @@ public class Client {
         System.out.println("Setting command to start ApplicationMaster service");
         //String JAVA_HOME = "usr/lib/jvm/java-8-openjdk-amd64/";
         amContainer.setCommands(Collections.singletonList("$JAVA_HOME/bin/java"
-                + " -Xmx256M" + " com.packt.firstyarnapp.ApplicationMaster"
+                + " -Xmx256M" + " ApplicationMaster"
                 + " " + command + " " + String.valueOf(n) + " 1>"
                 + ApplicationConstants.LOG_DIR_EXPANSION_VAR +
                 "/stdout"
                 + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
                 + "/stderr"));
 
-        amContainer.setLocalResources(Collections.singletonMap("first-yarn-app.jar", appMasterJar));
+        amContainer.setLocalResources(Collections.singletonMap("YarnClient.jar", appMasterJar));
         amContainer.setEnvironment(appMasterEnv);
 
         //Create ApplicationSubmissionContext
