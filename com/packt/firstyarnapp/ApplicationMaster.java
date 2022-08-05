@@ -1,21 +1,24 @@
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
-import org.apache.hadoop.yarn.api.records.Container;
-import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
-import org.apache.hadoop.yarn.api.records.ContainerStatus;
-import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
-import org.apache.hadoop.yarn.api.records.Priority;
-import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
 import org.apache.hadoop.yarn.client.api.NMClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.hadoop.yarn.util.Apps;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
 
@@ -62,7 +65,29 @@ public class ApplicationMaster {
                 ++allocatedContainers;
                 // Launch container by creating ContainerLaunchContext
                 ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
-                ctx.setCommands(Collections.singletonList(shellCommand + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR +
+                final Path jarPath = new Path("hdfs://namenode:9000/user/root/actual-application/ActualApplication.jar");
+                FileStatus jarStat = FileSystem.get(conf).getFileStatus(jarPath);
+                LocalResource actualAppJar = Records.newRecord(LocalResource.class);
+                actualAppJar.setResource(ConverterUtils.getYarnUrlFromPath(jarPath));
+                actualAppJar.setSize(jarStat.getLen());
+                actualAppJar.setTimestamp(jarStat.getModificationTime());
+                actualAppJar.setType(LocalResourceType.FILE);
+                actualAppJar.setVisibility(LocalResourceVisibility.PUBLIC);
+                // Set up CLASSPATH for ApplicationMaster
+                System.out.println("Setting environment");
+                Map<String, String> applicationEnv = new HashMap<String, String>();
+                for (String c : conf.getStrings(
+                        YarnConfiguration.YARN_APPLICATION_CLASSPATH,
+                        YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
+                    Apps.addToEnvironment(applicationEnv, ApplicationConstants.Environment.CLASSPATH.name(), c.trim());
+                }
+                Apps.addToEnvironment(applicationEnv, ApplicationConstants.Environment.CLASSPATH.name(), ApplicationConstants.Environment.PWD.$() + File.separator + "*");
+                ctx.setLocalResources(Collections.singletonMap("ActualApplication.jar", actualAppJar));
+                ctx.setEnvironment(applicationEnv);
+
+                final String shellCommandd = "$JAVA_HOME/bin/java -jar ActualApplication.jar";
+
+                ctx.setCommands(Collections.singletonList(shellCommandd + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR +
                         "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
                 nmClient.startContainer(container, ctx);
             }

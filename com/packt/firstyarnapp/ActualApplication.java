@@ -1,4 +1,4 @@
-public class Main {
+public class ActualApplication {
     public static void main(String[] args) {
         System.out.println("Wassup big dawg");
         System.out.println("Husseljo in the building");
